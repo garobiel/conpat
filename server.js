@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '123456',
+  password: 'Amoskate123*',
   database: 'conpat'
 });
 
@@ -23,6 +23,51 @@ db.connect(err => {
     return;
   }
   console.log('Conectado ao banco de dados MySQL');
+
+  // Verifica se a tabela 'patrimonios' existe
+  const checkTableQuery = `
+    SELECT COUNT(*) AS count 
+    FROM information_schema.tables 
+    WHERE table_schema = 'conpat' 
+    AND table_name = 'patrimonios'
+  `;
+
+  db.query(checkTableQuery, (err, results) => {
+    if (err) {
+      console.error('Erro ao verificar a tabela patrimonios:', err);
+      return;
+    }
+
+    const tableExists = results[0].count > 0;
+
+    if (tableExists) {
+      console.log('Tabela patrimonios existente');
+    } else {
+      // Cria a tabela se não existir
+      const createTableQuery = `
+        CREATE TABLE patrimonios (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          responsavel VARCHAR(255),
+          usuario VARCHAR(255),
+          dataCadastro DATE,
+          matricula VARCHAR(255),
+          matriculaAntiga VARCHAR(255),
+          modelo VARCHAR(255),
+          tipo VARCHAR(255),
+          movimentacao VARCHAR(255),
+          secretaria VARCHAR(255)
+        )
+      `;
+
+      db.query(createTableQuery, (err, result) => {
+        if (err) {
+          console.error('Erro ao criar a tabela patrimonios:', err);
+          return;
+        }
+        console.log('Tabela patrimonios criada com sucesso');
+      });
+    }
+  });
 });
 
 // Middleware de autenticação básica
