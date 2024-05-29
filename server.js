@@ -55,6 +55,36 @@ async function initializeDatabase() {
   await connection.end();
 }
 
+// Função para limpar a tabela de patrimônios
+async function clearPatrimoniosTable() {
+  const connection = await mysql.createConnection(dbConfig);
+
+  try {
+    await connection.execute('DELETE FROM patrimonios');
+  } catch (error) {
+    console.error('Erro ao limpar a tabela de patrimônios:', error);
+  } finally {
+    await connection.end();
+  }
+}
+
+// Rota para excluir um patrimônio pelo ID
+app.delete('/api/patrimonios/:id', async (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM patrimonios WHERE id = ?';
+
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    await connection.execute(query, [id]);
+    await connection.end();
+    res.send('Patrimônio excluído com sucesso');
+  } catch (err) {
+    console.error('Erro ao excluir patrimônio:', err);
+    res.status(500).send(err);
+  }
+});
+
+
 // Middleware de autenticação básica
 const authenticate = (req, res, next) => {
   const { username, password } = req.body;
@@ -126,3 +156,4 @@ if (require.main === module) {
 
 module.exports = app;
 module.exports.initializeDatabase = initializeDatabase;
+module.exports.clearPatrimoniosTable = clearPatrimoniosTable;

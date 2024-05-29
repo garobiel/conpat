@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { initializeDatabase } = require('./server'); // Ajuste o caminho conforme necessário
+const { initializeDatabase, clearPatrimoniosTable } = require('./server'); // Ajuste o caminho conforme necessário
 const app = require('./server'); // Ajuste o caminho conforme necessário
 
 describe('Testes de Rota', () => {
@@ -11,6 +11,22 @@ describe('Testes de Rota', () => {
   it('Deve responder com status 200 na rota /', async () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
+  });
+
+  beforeAll(async () => {
+    // Limpa a tabela de patrimônios antes de iniciar os testes
+    await clearPatrimoniosTable();
+  });
+
+  it('Deve retornar uma lista vazia de patrimônios quando não houver dados cadastrados', async () => {
+    // Faz uma requisição para obter os patrimônios
+    const response = await request(app).get('/api/patrimonios');
+
+    // Verifica se a resposta tem status 200
+    expect(response.status).toBe(200);
+
+    // Verifica se o corpo da resposta é uma array vazia
+    expect(response.body).toEqual([]);
   });
 
   it('Deve redirecionar para /index.html ao fazer login com credenciais corretas', async () => {
@@ -68,4 +84,25 @@ describe('Testes de Integração', () => {
     expect(response.status).toBe(200);
     expect(response.body).toBeInstanceOf(Array);
   });
+  
+});
+describe('Testes de Integração', () => {
+  // Teste anteriormente definido
+
+  it('Deve excluir um patrimônio existente', async () => {
+    // Supondo que o patrimônio de ID 1 exista no banco de dados
+    const idPatrimonioParaExcluir = 1;
+
+    // Faz uma requisição para excluir o patrimônio pelo ID
+    const responseExclusao = await request(app).delete(`/api/patrimonios/${idPatrimonioParaExcluir}`);
+
+    // Verifique se o patrimônio foi excluído com sucesso
+    expect(responseExclusao.status).toBe(200);
+    expect(responseExclusao.text).toBe('Patrimônio excluído com sucesso');
+
+    // Verifique se o patrimônio não está mais presente no banco de dados
+    const responseListaAtualizada = await request(app).get('/api/patrimonios');
+    expect(responseListaAtualizada.body).not.toContainEqual({ id: idPatrimonioParaExcluir });
+  });
+
 });
